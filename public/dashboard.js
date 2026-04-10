@@ -1,6 +1,18 @@
 const csvOutput = document.getElementById('csv-output');
 const statusMessage = document.getElementById('status-message');
 
+function getCsvEditorValue() {
+  const editor = csvOutput.querySelector('.csv-editor');
+  if (!editor) return '';
+  return editor.value || '';
+}
+
+function autoResizeCsvEditor(editor) {
+  if (!editor) return;
+  editor.style.height = 'auto';
+  editor.style.height = `${editor.scrollHeight}px`;
+}
+
 // Choix du mode (laps, temps ou distance)
 const timeInput = document.getElementById('time-input');
 const distanceInput = document.getElementById('distance-input');
@@ -117,14 +129,16 @@ async function loadCSV(id) {
     actions.appendChild(copyBtn);
     actions.appendChild(downloadBtn);
 
-    const pre = document.createElement('pre');
-    pre.classList.add('csv-block');
-    pre.textContent = csv;
+    const editor = document.createElement('textarea');
+    editor.classList.add('csv-block', 'csv-editor');
+    editor.value = csv;
+    editor.spellcheck = false;
+    editor.addEventListener('input', () => autoResizeCsvEditor(editor));
 
     csvOutput.appendChild(actions);
-    csvOutput.appendChild(pre);
+    csvOutput.appendChild(editor);
 
-    csvOutput.dataset.csv = csv;
+    autoResizeCsvEditor(editor);
 
     // Auto scroll vers le résultat
     csvOutput.scrollIntoView({ behavior: 'smooth' });
@@ -138,13 +152,13 @@ async function loadCSV(id) {
 
 // Pour le bouton copier
 function copyCSV() {
-  const csv = csvOutput.dataset.csv;
+  const csv = getCsvEditorValue();
   navigator.clipboard.writeText(csv);
 }
 
 // Pour le bouton télécharger
 function downloadCSV() {
-  const csv = csvOutput.dataset.csv;
+  const csv = getCsvEditorValue();
 
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
